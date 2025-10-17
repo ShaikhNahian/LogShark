@@ -1,30 +1,36 @@
 import dotenv from "dotenv";
-import { ChatOpenAI } from "@langchain/openai";
+import { ChatOllama } from "@langchain/ollama";
 
 dotenv.config();
 
-const OPENAI_KEY = process.env.OPENAI_API_KEY;
-if (!OPENAI_KEY) console.warn("No OPENAI_API_KEY found in env");
+const MODEL = process.env.OLLAMA_MODEL || "phi3";
 
 export async function analyzeLogs(logText) {
-  // instantiate the LLM (LangChain OpenAI integration)
-  const llm = new ChatOpenAI({
-    openAIApiKey: OPENAI_KEY,   // use this key field for @langchain/openai
-    modelName: "gpt-4o-mini",    // change to a model you have access to if needed
-    temperature: 0.2,
-  });
+  try {
+    // Initialize the Ollama model
+    const llm = new ChatOllama({
+      model: MODEL,
+      temperature: 0.2,
+    });
 
-  const prompt = `You are a log analysis assistant. From the logs below, produce:
-1) A short summary (2-4 lines)
-2) Top 3 recurring errors/warnings with counts if possible
-3) Any immediate suggested next steps for investigation.
+    // Construct the prompt for log analysis
+    const prompt = `
+You are LogShark — an intelligent log analysis assistant.
+Analyze the following application logs and produce:
+1. A concise summary of what's happening overall.
+2. A list of errors or warnings with short explanations.
+3. Any patterns, trends, or recommendations for troubleshooting.
 
 Logs:
-${logText}`;
+${logText}
+`;
 
-  const response = await llm.invoke([
-    { role: "user", content: prompt }
-  ]);
+    // Send the request to Ollama
+    const response = await llm.invoke([{ role: "user", content: prompt }]);
+    return response.content;
 
-  return response.content;
+  } catch (err) {
+    console.error("❌ Ollama analysis failed:", err);
+    return "⚠️ Error: Could not analyze logs. Make sure Ollama is running locally (http://localhost:11434) and that your model is installed.";
+  }
 }
