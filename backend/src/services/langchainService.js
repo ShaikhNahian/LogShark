@@ -1,20 +1,13 @@
 import dotenv from "dotenv";
 import { ChatOllama } from "@langchain/ollama";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 
 dotenv.config();
 
-const MODEL = process.env.OLLAMA_MODEL || "phi3";
+const { LLM_MODE, OLLAMA_MODEL, GEMINI_API_KEY, GEMINI_MODEL } = process.env;
 
 export async function analyzeLogs(logText) {
-  try {
-    // Initialize the Ollama model
-    const llm = new ChatOllama({
-      model: MODEL,
-      temperature: 0.2,
-    });
-
-    // Construct the prompt for log analysis
-    const prompt = `
+  const prompt = `
 You are LogShark — an intelligent log analysis assistant.
 Analyze the following application logs and produce:
 1. A concise summary of what's happening overall.
@@ -25,12 +18,31 @@ Logs:
 ${logText}
 `;
 
-    // Send the request to Ollama
+  try {
+    let llm;
+
+    if (LLM_MODE === "gemini") {
+      console.log("Using Gemini model:", GEMINI_MODEL);
+
+      llm = new ChatGoogleGenerativeAI({
+        apiKey: GEMINI_API_KEY,
+        model: GEMINI_MODEL || "gemini-2.5-pro",
+        temperature: 0.2,
+      });
+    } else {
+      console.log("Using Ollama model:", OLLAMA_MODEL);
+
+      llm = new ChatOllama({
+        model: OLLAMA_MODEL || "phi3",
+        temperature: 0.2,
+      });
+    }
+
     const response = await llm.invoke([{ role: "user", content: prompt }]);
-    return response.content;
+    return response.content || response.text || "No response from model.";
 
   } catch (err) {
-    console.error("❌ Ollama analysis failed:", err);
-    return "⚠️ Error: Could not analyze logs. Make sure Ollama is running locally (http://localhost:11434) and that your model is installed.";
+    console.error("Analysis failed:", err);
+    return "Error: Could not analyze logs. Check your LLM settings or connectivity.";
   }
 }

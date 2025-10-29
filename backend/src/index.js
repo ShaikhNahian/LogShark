@@ -15,7 +15,6 @@ app.use(express.json({ limit: "5mb" }));
 app.use("/upload", uploadRouter);
 app.use("/analyze", analyzeRouter);
 
-// ✅ NEW: SSH Log Streaming Endpoint
 app.post("/stream", (req, res) => {
   const { host, username, password, logPath } = req.body;
 
