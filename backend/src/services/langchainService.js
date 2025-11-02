@@ -26,7 +26,7 @@ ${logText}
 
       llm = new ChatGoogleGenerativeAI({
         apiKey: GEMINI_API_KEY,
-        model: GEMINI_MODEL || "gemini-2.5-pro",
+        model: GEMINI_MODEL || "gemini-2.5-flash-lite",
         temperature: 0.2,
       });
     } else {
