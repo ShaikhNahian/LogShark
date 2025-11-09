@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import Link from "next/link";
 
 export default function Home() {
   const [file, setFile] = useState(null);
@@ -32,43 +33,55 @@ export default function Home() {
   return (
     <div className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-3xl mx-auto bg-white rounded shadow p-6">
-        <h1 className="text-3xl font-bold mb-4">LogShark 🦈</h1>
+        <h1 className="text-3xl font-bold mb-6 text-center">LogShark 🦈</h1>
 
-        {/* --- File Upload Section --- */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
-          {/* Hidden File Input */}
+        <div className="mb-6 flex flex-col sm:flex-row items-center gap-3">
+        <div className="relative">
           <input
+            id="file-input"
             type="file"
-            id="file-upload"
-            className="hidden"
             onChange={(e) => setFile(e.target.files[0])}
+            className="absolute inset-0 opacity-0 cursor-pointer"
           />
-
-          {/* Styled Label as Button */}
           <label
-            htmlFor="file-upload"
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded cursor-pointer transition"
+            htmlFor="file-input"
+            className="inline-block bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded cursor-pointer transition"
           >
             {file ? file.name : "Choose File"}
           </label>
-
-          {/* Upload Button */}
-          <button
-            onClick={handleUpload}
-            disabled={loading}
-            className={`px-5 py-2 rounded text-white font-medium transition 
-              ${loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
-          >
-            {loading ? "Analyzing..." : "Upload & Analyze"}
-          </button>
         </div>
+
+  <button
+    onClick={handleUpload}
+    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition disabled:opacity-60"
+    disabled={loading}
+  >
+    {loading ? "Analyzing..." : "Upload & Analyze"}
+  </button>
+</div>
+
 
         {summary && (
           <div className="mt-4 p-4 bg-gray-100 rounded">
             <h2 className="font-semibold mb-2">AI Summary</h2>
-            <pre className="whitespace-pre-wrap">{summary}</pre>
+            <pre className="whitespace-pre-wrap text-sm">{summary}</pre>
           </div>
         )}
+
+        {/* Divider line */}
+        <div className="my-8 border-t border-gray-200"></div>
+
+        {/* Live Stream link section */}
+        <div className="text-center">
+          <p className="mb-3 text-gray-600">
+            Want to monitor live logs in real time?
+          </p>
+          <Link href="/livestream">
+            <button className="bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700 transition">
+              Go to Live Stream
+            </button>
+          </Link>
+        </div>
       </div>
     </div>
   );

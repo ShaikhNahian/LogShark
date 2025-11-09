@@ -1,10 +1,4 @@
-// backend/src/services/sshService.js
 import { Client } from "ssh2";
-
-/**
- * startSSHStream({host, username, password, logPath}, onData, onClose)
- * returns { stop: () => void }
- */
 export function startSSHStream({ host, username, password, logPath }, onData, onClose) {
   const conn = new Client();
   let closed = false;
