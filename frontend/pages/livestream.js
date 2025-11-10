@@ -12,6 +12,8 @@ export default function LiveStream() {
   const [logs, setLogs] = useState([]);
   const socketRef = useRef(null);
   const containerRef = useRef(null);
+  const [question, setQuestion] = useState("");
+  const [qaHistory, setQaHistory] = useState([]);
 
   useEffect(() => {
     const socket = io("http://localhost:5000", { transports: ["websocket"] });
@@ -26,14 +28,14 @@ export default function LiveStream() {
       setStreaming(false);
     });
 
-    //chunk
+    // ---- Log stream ----
     socket.on("log", (chunk) => {
       const lines = String(chunk).split(/\r?\n/).filter(Boolean);
       setLogs((prev) => {
         const next = [...prev, ...lines].slice(-2000); // limit retention
         return next;
       });
-      //auto scroll
+      // Auto-scroll
       requestAnimationFrame(() => {
         if (containerRef.current) {
           containerRef.current.scrollTop = containerRef.current.scrollHeight;
@@ -49,7 +51,33 @@ export default function LiveStream() {
       setLogs((prev) => [...prev, `[error] ${m}`].slice(-2000));
     });
 
+    // ---- AI events ----
+    socket.on("ai_status", (msg) => {
+      // Show temporary system status like "Thinking..."
+      setQaHistory((prev) => [...prev, { role: "system", content: msg }]);
+    });
+
+    socket.on("answer", (payload) => {
+      if (payload.error) {
+        setQaHistory((prev) => [
+          ...prev,
+          { role: "assistant", content: `Error: ${payload.error}` },
+        ]);
+      } else {
+        setQaHistory((prev) => [
+          ...prev,
+          { role: "assistant", content: payload.answer },
+        ]);
+      }
+    });
+
+    // Cleanup listeners on unmount
     return () => {
+      socket.off("log");
+      socket.off("info");
+      socket.off("error");
+      socket.off("ai_status");
+      socket.off("answer");
       socket.disconnect();
     };
   }, []);
@@ -73,6 +101,8 @@ export default function LiveStream() {
     if (/info/i.test(line)) return "text-slate-700";
     return "text-gray-700";
   };
+
+  
 
   return (
     <div className="min-h-screen p-8 bg-gray-50">
@@ -111,6 +141,23 @@ export default function LiveStream() {
             </div>
           ))}
         </div>
+
+        <div className="mt-4">
+          <h3 className="font-semibold mb-2">Ask about live logs</h3>
+          <div className="flex gap-2 mb-2">
+            <input value={question} onChange={e=>setQuestion(e.target.value)} placeholder="Ask about current logs" className="flex-1 border p-2 rounded" />
+            <button onClick={askLive} className="bg-indigo-600 text-white px-4 py-2 rounded">Ask</button>
+          </div>
+
+          <div className="space-y-2 max-h-56 overflow-auto p-2 bg-white rounded">
+            {qaHistory.map((m,i) => (
+              <div key={i} className={m.role === "user" ? "text-right" : "text-left"}>
+                <div className={`inline-block p-2 rounded ${m.role === "user" ? "bg-blue-100" : "bg-gray-100"}`}>{m.content}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );
