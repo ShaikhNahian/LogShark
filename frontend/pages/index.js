@@ -4,18 +4,18 @@ import Link from "next/link";
 
 export default function Home() {
   const [file, setFile] = useState(null);
-  const [summary, setSummary] = useState("");
-  const [loading, setLoading] = useState(false);
 
   // For Q&A on uploaded logs
   const [lastUploadedLog, setLastUploadedLog] = useState(null); // stores the raw log text from upload
   const [question, setQuestion] = useState("");
   const [chatHistory, setChatHistory] = useState([]); // [{role:'user'|'assistant', content} ]
+  const [uploading, setUploading] = useState(false);
   const [askLoading, setAskLoading] = useState(false);
 
+  // Upload only — no automatic analyze
   const handleUpload = async () => {
     if (!file) return alert("Choose a file first");
-    setLoading(true);
+    setUploading(true);
     try {
       const form = new FormData();
       form.append("logfile", file);
@@ -25,19 +25,14 @@ export default function Home() {
 
       const logData = upRes.data.logData;
       setLastUploadedLog(logData); // save for Q/A
-
-      const analyzeRes = await axios.post("http://localhost:5000/analyze", {
-        logData,
-      });
-
-      setSummary(analyzeRes.data.summary ?? analyzeRes.data);
       // reset chat history when a new file is uploaded
       setChatHistory([]);
+      alert("Upload complete — you can now ask questions about the uploaded log.");
     } catch (err) {
       console.error(err);
-      alert("Upload or analysis failed. Check backend logs.");
+      alert("Upload failed. Check backend logs.");
     } finally {
-      setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -92,21 +87,11 @@ export default function Home() {
           <button
             onClick={handleUpload}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition disabled:opacity-60"
-            disabled={loading}
+            disabled={uploading}
           >
-            {loading ? "Analyzing..." : "Upload & Analyze"}
+            {uploading ? "Uploading..." : "Upload"}
           </button>
         </div>
-
-        {summary && (
-          <div className="mt-4 p-4 bg-gray-100 rounded">
-            <h2 className="font-semibold mb-2">AI Summary</h2>
-            <pre className="whitespace-pre-wrap text-sm">{summary}</pre>
-          </div>
-        )}
-
-        {/* Divider line */}
-        <div className="my-8 border-t border-gray-200"></div>
 
         {/* Q/A for uploaded log */}
         <div className="mb-6">

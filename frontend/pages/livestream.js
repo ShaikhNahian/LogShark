@@ -28,7 +28,7 @@ export default function LiveStream() {
       setStreaming(false);
     });
 
-    // ---- Log stream ----
+    // Log stream 
     socket.on("log", (chunk) => {
       const lines = String(chunk).split(/\r?\n/).filter(Boolean);
       setLogs((prev) => {
@@ -51,7 +51,7 @@ export default function LiveStream() {
       setLogs((prev) => [...prev, `[error] ${m}`].slice(-2000));
     });
 
-    // ---- AI events ----
+    //  AI events 
     socket.on("ai_status", (msg) => {
       // Show temporary system status like "Thinking..."
       setQaHistory((prev) => [...prev, { role: "system", content: msg }]);
@@ -95,6 +95,29 @@ export default function LiveStream() {
     setStreaming(false);
   };
 
+  // NEW: emit ask to backend and add user message locally
+  const askLive = () => {
+    const socket = socketRef.current;
+    if (!socket) {
+      setQaHistory((h) => [...h, { role: "assistant", content: "Not connected to server." }]);
+      return;
+    }
+    if (!streaming) {
+      setQaHistory((h) => [...h, { role: "assistant", content: "Start a stream first." }]);
+      return;
+    }
+    if (!question || !question.trim()) return;
+
+    // push user's question immediately
+    setQaHistory((h) => [...h, { role: "user", content: question }]);
+
+    // emit ask
+    socket.emit("ask", { question });
+
+    // clear input
+    setQuestion("");
+  };
+
   const colorize = (line) => {
     if (/error/i.test(line)) return "text-red-600";
     if (/warn/i.test(line)) return "text-amber-700";
@@ -102,17 +125,15 @@ export default function LiveStream() {
     return "text-gray-700";
   };
 
-  
-
   return (
     <div className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-4xl mx-auto bg-white shadow rounded p-6">
         <h1 className="text-2xl font-bold mb-4">LogShark — Live Stream</h1>
 
         <Link href="/">
-        <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded transition">
+          <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded transition">
             ← Back to Home
-        </button>
+          </button>
         </Link>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
