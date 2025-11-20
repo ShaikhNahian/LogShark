@@ -15,15 +15,13 @@ export async function askAboutLogs({ logText, question, history = [] }) {
 Use the provided logs to answer the user's question. If the logs do not contain enough info, say what to check next.
 Be concise but include steps if troubleshooting.`;
 
-  // Build system + context + conversation messages for chat-style LLMs
-  // We'll include: system instruction, few-shot if needed, recent logs, conversation history, user question.
   const maxLogLines = 800; // tune this for tokens
   const logLines = String(logText || "").split(/\r?\n/).slice(-maxLogLines).join("\n");
 
   const promptHeader = `${INSTRUCTION}\n\nLogs (most recent ${Math.min(maxLogLines, logLines.split("\n").length)} lines):\n${logLines}\n\n---\n`;
 
   // Construct messages array depending on model
-  // We'll pass as chat messages: system user/history...
+  // pass as chat messages: system user/history...
   const messages = [];
 
   // System role
@@ -32,7 +30,7 @@ Be concise but include steps if troubleshooting.`;
   // Attach a summarized context block as a user/system message
   messages.push({ role: "user", content: `Context logs (recent excerpt):\n${logLines}` });
 
-  // Append conversation history (if any)
+  // Append conversation history
   if (Array.isArray(history) && history.length) {
     for (const m of history.slice(-10)) { // only keep last 10 messages of history
       messages.push({ role: m.role, content: m.content });
