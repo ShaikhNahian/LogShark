@@ -1,3 +1,6 @@
+/**
+ * @author Shaikh Nahian
+*/
 import dotenv from "dotenv";
 import { ChatOllama } from "@langchain/ollama";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";

@@ -1,4 +1,6 @@
-// backend/src/index.js
+/**
+ * @author Shaikh Nahian
+*/
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";

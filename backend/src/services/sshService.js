@@ -1,3 +1,6 @@
+/**
+ * @author Shaikh Nahian
+*/
 import { Client } from "ssh2";
 export function startSSHStream({ host, username, password, logPath }, onData, onClose) {
   const conn = new Client();

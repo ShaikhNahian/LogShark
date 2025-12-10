@@ -6,7 +6,7 @@ export default function LiveStream() {
   const [host, setHost] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [logPath, setLogPath] = useState("/tmp/therap-batch.log");
+  const [logPath, setLogPath] = useState("");
   const [connected, setConnected] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [logs, setLogs] = useState([]);
